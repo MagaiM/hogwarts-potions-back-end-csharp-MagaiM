@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using HogwartsPotions.Models.Entities;
+using HogwartsPotions.Models.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace HogwartsPotions.Models
@@ -14,34 +17,55 @@ namespace HogwartsPotions.Models
         {
         }
 
+        public DbSet<Student> Students { get; set; }
+        public DbSet<Room> Rooms { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Student>().ToTable("Student");
+            modelBuilder.Entity<Room>().ToTable("Room");
+        }
+
         public async Task AddRoom(Room room)
         {
-            throw new NotImplementedException();
+            Rooms.Add(room);
+            await SaveChangesAsync();
         }
 
         public Task<Room> GetRoom(long roomId)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(Rooms.ToListAsync().Result.First(room => room.ID == roomId));
         }
 
         public Task<List<Room>> GetAllRooms()
         {
-            throw new NotImplementedException();
+            return Rooms.ToListAsync();
         }
 
         public async Task UpdateRoom(Room room)
         {
-            throw new NotImplementedException();
+            var originalRoom = GetRoom(room.ID);
+            Rooms.Remove(originalRoom.Result);
+            Rooms.Add(room);
+            await SaveChangesAsync();
         }
 
         public async Task DeleteRoom(long id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var room = GetRoom(id);
+                Rooms.Remove(room.Result);
+                await SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+            }
         }
 
         public Task<List<Room>> GetRoomsForRatOwners()
         {
-            throw new NotImplementedException();
+            return Task.FromResult((from room in Rooms let ratable = room.Residents.All(student => student.PetType != PetType.Cat && student.PetType != PetType.Owl) where ratable select room).ToList());
         }
     }
 }
