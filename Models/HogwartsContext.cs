@@ -18,11 +18,15 @@ namespace HogwartsPotions.Models
 
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Student> Students { get; set; }
+        public DbSet<Ingredient> Ingredients { get; set; }
+        public DbSet<Recipe> Recipes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Room>().ToTable("Room");
             modelBuilder.Entity<Student>().ToTable("Student");
+            modelBuilder.Entity<Ingredient>().ToTable("Ingredient");
+            modelBuilder.Entity<Recipe>().ToTable("Recipe");
         }
 
         public async Task AddRoom(Room room)
