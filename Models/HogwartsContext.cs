@@ -175,5 +175,13 @@ namespace HogwartsPotions.Models
             var studentRecipes = Recipes.ToListAsync().Result.Where(recipe => recipe.Student.ID == student.ID).ToList();
             return $"{student.Name}'s discovery #{studentRecipes.Count + 1}";
         }
+
+        public Task<List<Potion>> GetAllPotionByStudent(long studentId)
+        {
+            var potions = Potions.Include(potion => potion.Ingredients).Include(potion => potion.Recipe).Include(p => p.Student).ToListAsync()
+                .Result.Where(p => p.Student.ID == studentId).ToList();
+
+            return Task.FromResult(potions);
+        }
     }
 }
