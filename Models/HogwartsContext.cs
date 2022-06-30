@@ -99,46 +99,46 @@ namespace HogwartsPotions.Models
             return Task.FromResult(potions);
         }
 
-        public async Task<Potion> BrewPotion(CreatePotion createPotion)
+        public async Task<Potion> AddPotion(CreatePotion createPotion)
         {
             var student = GetStudent(createPotion.StudentId).Result;
             var recipe = new Recipe();
             var ingredients = GetIngredients(createPotion.Ingredients);
             BrewingStatus brewingStatus;
 
-            if (createPotion.Ingredients.Count <= 0)
+            switch (createPotion.Ingredients.Count)
             {
-                return null;
-            }
-            if (createPotion.Ingredients.Count < MaxIngredientsForPotions)
-            {
-                brewingStatus = BrewingStatus.Brew;
-                recipe = default;
-            }
-            else if (createPotion.Ingredients.Count > MaxIngredientsForPotions)
-            {
-                return null;
-            }
-            else
-            {
-                var allRecipes = Recipes.Include(r => r.Ingredients).Include(r => r.Student).ToListAsync().Result;
-                if (allRecipes.Any(r => r.Ingredients.SetEquals(ingredients)))
+                case <= 0:
+                    return null;
+                case < MaxIngredientsForPotions:
+                    brewingStatus = BrewingStatus.Brew;
+                    recipe = default;
+                    break;
+                case > MaxIngredientsForPotions:
+                    return null;
+                default:
                 {
-                    brewingStatus = BrewingStatus.Replica;
-                    recipe = allRecipes.First(r => r.Ingredients.SetEquals(ingredients));
-                }
-                else
-                {
-                    brewingStatus = BrewingStatus.Discovery;
-                    var recipeName = GenerateRecipeName(student);
-                    recipe = new Recipe
+                    var allRecipes = Recipes.Include(r => r.Ingredients).Include(r => r.Student).ToListAsync().Result;
+                    if (allRecipes.Any(r => r.Ingredients.SetEquals(ingredients)))
                     {
-                        Ingredients = ingredients,
-                        Name = recipeName,
-                        Student = student
-                    };
-                    Recipes.Add(recipe);
-                    await SaveChangesAsync();
+                        brewingStatus = BrewingStatus.Replica;
+                        recipe = allRecipes.First(r => r.Ingredients.SetEquals(ingredients));
+                    }
+                    else
+                    {
+                        brewingStatus = BrewingStatus.Discovery;
+                        var recipeName = GenerateRecipeName(student);
+                        recipe = new Recipe
+                        {
+                            Ingredients = ingredients,
+                            Name = recipeName,
+                            Student = student
+                        };
+                        Recipes.Add(recipe);
+                        await SaveChangesAsync();
+                    }
+
+                    break;
                 }
             }
 
@@ -182,6 +182,30 @@ namespace HogwartsPotions.Models
                 .Result.Where(p => p.Student.ID == studentId).ToList();
 
             return Task.FromResult(potions);
+        }
+
+        public async Task<Potion> BrewPotion(BrewPotion brewPotion)
+        {
+            var student = GetStudent(brewPotion.StudentId).Result;
+            var potions = GetAllPotionByStudent(student.ID).Result;
+            var brewingStatus = BrewingStatus.Brew;
+            var ingredients = new HashSet<Ingredient>();
+            Recipe recipe = null;
+            var name = $"{student.Name}'s potion #{potions.Count + 1}";
+
+            var potion = new Potion
+            {
+                Name = name,
+                BrewingStatus = brewingStatus,
+                Ingredients = ingredients,
+                Student = student,
+                Recipe = recipe
+            };
+
+            Potions.Add(potion);
+            await SaveChangesAsync();
+
+            return potion;
         }
     }
 }
