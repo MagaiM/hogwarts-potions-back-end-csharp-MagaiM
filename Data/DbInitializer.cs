@@ -179,7 +179,12 @@ namespace HogwartsPotions.Data
                     {
                         Name = "Something Stew",
                         Student = context.Students.First(student => student.ID == 2),
-                        Recipe = null,
+                        Recipe = new Recipe
+                        {
+                            Name = "Something Stew Recipe",
+                            Student = context.Students.First(student => student.ID == 2),
+                            Ingredients = context.Ingredients.Where(ingredient => ingredient.ID > 5 && ingredient.ID <= 10).ToHashSet(),
+                        },
                         Ingredients = context.Ingredients.Where(ingredient => ingredient.ID > 5 && ingredient.ID <= 10).ToHashSet(),
                         BrewingStatus = BrewingStatus.Discovery
                     },
@@ -191,7 +196,6 @@ namespace HogwartsPotions.Data
                         Ingredients = context.Ingredients.Where(ingredient => ingredient.ID == 1 || ingredient.ID == 7).ToHashSet(),
                         BrewingStatus = BrewingStatus.Brew
                     },
-
                 };
 
                 foreach (var potion in potions)
