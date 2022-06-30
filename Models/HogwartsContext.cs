@@ -39,26 +39,15 @@ namespace HogwartsPotions.Models
 
         public Task<Room> GetRoom(long roomId)
         {
-            var room = Rooms.ToListAsync().Result.First(room => room.ID == roomId);
-            var residents = Students.ToListAsync().Result.Where(student => student.Room.ID == room.ID);
-            foreach (var resident in residents)
-            {
-                room.Residents.Add(resident);
-            }
+            var room = Rooms.Include(room => room.Residents).ToListAsync().Result.First(room => room.ID == roomId);
+
             return Task.FromResult(room);
         }
 
         public Task<List<Room>> GetAllRooms()
         {
-            var rooms = Rooms.ToListAsync().Result;
-            foreach (var room in rooms)
-            {
-                var residents = Students.ToListAsync().Result.Where(student => student.Room.ID == room.ID);
-                foreach (var resident in residents)
-                {
-                    room.Residents.Add(resident);
-                }
-            }
+            var rooms = Rooms.Include(room => room.Residents).ToListAsync().Result;
+
             return Task.FromResult(rooms);
         }
 
@@ -77,9 +66,9 @@ namespace HogwartsPotions.Models
                 Rooms.Remove(room.Result);
                 await SaveChangesAsync();
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                // ignored
+                throw new Exception(e.Message);
             }
         }
 
@@ -88,24 +77,12 @@ namespace HogwartsPotions.Models
             var allRooms = GetAllRooms().Result;
             var rooms = (from room in allRooms let ratable = room.Residents.All(roomResident => roomResident.PetType is not (PetType.Cat or PetType.Owl)) where ratable select room).ToList();
 
-            foreach (var room in rooms)
-            {
-                var residents = Students.ToListAsync().Result.Where(student => student.Room.ID == room.ID);
-                foreach (var resident in residents)
-                {
-                    room.Residents.Add(resident);
-                }
-            }
-
             return Task.FromResult(rooms);
         }
 
         public Task<List<Potion>> GetAllPotion()
         {
-            var potions = Potions.ToListAsync().Result;
-            foreach (var potion in potions)
-            {
-            }
+            var potions = Potions.Include(potion => potion.Ingredients).Include(potion => potion.Recipe).ToListAsync().Result;
 
             return Task.FromResult(potions);
         }
