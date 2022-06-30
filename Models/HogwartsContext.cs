@@ -207,5 +207,63 @@ namespace HogwartsPotions.Models
 
             return potion;
         }
+
+        public async Task<Potion> AddIngredientToPotion(long potionId, Ingredient newIngredient)
+        {
+            var potion = Potions.Include(p => p.Ingredients).Include(p => p.Recipe).Include(p => p.Student)
+                .ToListAsync().Result.FirstOrDefault(potion => potion.ID == potionId);
+            if (potion == null || potion.Ingredients.Count >= MaxIngredientsForPotions) return null;
+
+            var ingredients = potion.Ingredients;
+            ingredients.Add(newIngredient);
+            ingredients = GetIngredients(ingredients);
+            potion.Ingredients = ingredients;
+
+            if (ingredients.Count == MaxIngredientsForPotions)
+            {
+
+                var allRecipes = Recipes.Include(r => r.Ingredients).Include(r => r.Student).ToListAsync().Result;
+                BrewingStatus brewingStatus;
+                Recipe recipe;
+
+                if (allRecipes.Any(r => r.Ingredients.SetEquals(ingredients)))
+                {
+                    brewingStatus = BrewingStatus.Replica;
+                    recipe = allRecipes.First(r => r.Ingredients.SetEquals(ingredients));
+                }
+                else
+                {
+                    brewingStatus = BrewingStatus.Discovery;
+                    var recipeName = GenerateRecipeName(potion.Student);
+                    recipe = new Recipe
+                    {
+                        Ingredients = ingredients,
+                        Name = recipeName,
+                        Student = potion.Student
+                    };
+                    Recipes.Add(recipe);
+                    await SaveChangesAsync();
+                }
+
+                potion.BrewingStatus = brewingStatus;
+                potion.Recipe = recipe;
+            }
+            await SaveChangesAsync();
+
+            return potion;
+        }
+
+        public async Task<List<Recipe>> HelpFinishBrew(long potionId)
+        {
+            var ingredients = Potions.Include(p => p.Ingredients).ToListAsync().Result
+                .FirstOrDefault(p => p.ID == potionId)
+                ?.Ingredients;
+            if (ingredients == null) return null;
+
+            var allRecipes = Recipes.Include(r => r.Ingredients).Include(r => r.Student).ToListAsync().Result;
+            var result = allRecipes.FindAll(r => r.Ingredients.IsSupersetOf(ingredients));
+
+            return result;
+        }
     }
 }
