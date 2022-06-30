@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace HogwartsPotions.Controllers
 {
     [ApiController, Route("/potions")]
-    public class PotionController : ControllerBase
+    public class PotionController : Controller
     {
         private readonly HogwartsContext _context;
 
@@ -20,6 +20,12 @@ namespace HogwartsPotions.Controllers
         public async Task<List<Potion>> GetAllPotions()
         {
             return await _context.GetAllPotion();
+        }
+
+        [HttpPost]
+        public async Task BrewPotion(CreatePotion potion)
+        {
+            await _context.BrewPotion(potion);
         }
     }
 }
