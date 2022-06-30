@@ -99,7 +99,7 @@ namespace HogwartsPotions.Models
             return Task.FromResult(potions);
         }
 
-        public async Task BrewPotion(CreatePotion createPotion)
+        public async Task<Potion> BrewPotion(CreatePotion createPotion)
         {
             var student = GetStudent(createPotion.StudentId).Result;
             var recipe = new Recipe();
@@ -108,7 +108,7 @@ namespace HogwartsPotions.Models
 
             if (createPotion.Ingredients.Count <= 0)
             {
-                return;
+                return null;
             }
             if (createPotion.Ingredients.Count < MaxIngredientsForPotions)
             {
@@ -117,7 +117,7 @@ namespace HogwartsPotions.Models
             }
             else if (createPotion.Ingredients.Count > MaxIngredientsForPotions)
             {
-                return;
+                return null;
             }
             else
             {
@@ -153,6 +153,8 @@ namespace HogwartsPotions.Models
 
             Potions.Add(potion);
             await SaveChangesAsync();
+
+            return potion;
         }
 
         private HashSet<Ingredient> GetIngredients(HashSet<Ingredient> createPotionIngredients)
