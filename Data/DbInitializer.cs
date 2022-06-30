@@ -1,5 +1,4 @@
 ﻿using HogwartsPotions.Models;
-using System;
 using System.Linq;
 using HogwartsPotions.Models.Entities;
 using HogwartsPotions.Models.Enums;
@@ -13,126 +12,195 @@ namespace HogwartsPotions.Data
         {
             context.Database.EnsureCreated();
 
-            // Look for any students and rooms.
-            if (context.Students.Any() && context.Rooms.Any())
+            // Look for any rooms.
+            if (!context.Rooms.Any())
             {
-                return;   // DB has been seeded
-            }
+                var rooms = new Room[]
+                {
+                    new Room
+                    {
+                        Capacity = 10,
+                    },
+                    new Room
+                    {
+                        Capacity = 10,
+                    },
+                    new Room
+                    {
+                        Capacity = 10,
+                    },
+                    new Room
+                    {
+                        Capacity = 10,
+                    }
+                };
 
-            var rooms = new Room[]
-            {
-                new Room
+                foreach (var room in rooms)
                 {
-                    Capacity = 10,
-                },
-                new Room
-                {
-                    Capacity = 10,
-                },
-                new Room
-                {
-                    Capacity = 10,
-                },
-                new Room
-                {
-                    Capacity = 10,
+                    context.Rooms.Add(room);
                 }
-            };
 
-            foreach (var room in rooms)
-            {
-                context.Rooms.Add(room);
+                context.SaveChanges();
             }
-            context.SaveChanges();
 
-            var students = new Student[]
+            //Look for any students.
+            if (!context.Students.Any())
             {
-                new Student
+                var students = new Student[]
                 {
-                    HouseType = HouseType.Gryffindor,
-                    Name = "Hermione Granger",
-                    PetType = PetType.Cat,
-                    Room = rooms.First(room => room.ID == 1),
-                },
-                new Student
-                {
-                    HouseType = HouseType.Gryffindor,
-                    Name = "Harry Potter",
-                    PetType = PetType.Owl,
-                    Room = rooms.First(room => room.ID == 1),
-                },
-                new Student
-                {
-                    HouseType = HouseType.Slytherin,
-                    Name = "Draco Melfloy",
-                    PetType = PetType.None,
-                    Room = rooms.First(room => room.ID == 2),
-                },
-            };
+                    new Student
+                    {
+                        HouseType = HouseType.Gryffindor,
+                        Name = "Hermione Granger",
+                        PetType = PetType.Cat,
+                        Room = context.Rooms.First(room => room.ID == 1),
+                    },
+                    new Student
+                    {
+                        HouseType = HouseType.Gryffindor,
+                        Name = "Harry Potter",
+                        PetType = PetType.Owl,
+                        Room = context.Rooms.First(room => room.ID == 1),
+                    },
+                    new Student
+                    {
+                        HouseType = HouseType.Slytherin,
+                        Name = "Draco Melfloy",
+                        PetType = PetType.None,
+                        Room = context.Rooms.First(room => room.ID == 2),
+                    }
+                };
 
-            foreach (var student in students)
-            {
-                context.Students.Add(student);
-                context.Rooms.First(room => room.ID == student.Room.ID).Residents.Add(student);
+                foreach (var student in students)
+                {
+                    context.Students.Add(student);
+                    context.Rooms.First(room => room.ID == student.Room.ID).Residents.Add(student);
+                }
+
+                context.SaveChanges();
             }
-            context.SaveChanges();
 
             // Look for any ingredients.
-            if (context.Ingredients.Any())
+            if (!context.Ingredients.Any())
             {
-                return;   // DB has been seeded
+                var ingredients = new Ingredient[]
+                {
+                    new Ingredient
+                    {
+                        Name = "Vodka"
+                    },
+                    new Ingredient
+                    {
+                        Name = "Beer"
+                    },
+                    new Ingredient
+                    {
+                        Name = "Water"
+                    },
+                    new Ingredient
+                    {
+                        Name = "Rum"
+                    },
+                    new Ingredient
+                    {
+                        Name = "Whisky"
+                    },
+                    new Ingredient
+                    {
+                        Name = "Potato"
+                    },
+                    new Ingredient
+                    {
+                        Name = "Strawberry"
+                    },
+                    new Ingredient
+                    {
+                        Name = "Tomato"
+                    },
+                    new Ingredient
+                    {
+                        Name = "Apple"
+                    },
+                    new Ingredient
+                    {
+                        Name = "Ginseng"
+                    },
+                };
+
+                foreach (var ingredient in ingredients)
+                {
+                    context.Ingredients.Add(ingredient);
+                }
+
+                context.SaveChanges();
             }
 
-            var ingredients = new Ingredient[]
+            // Look for any recipes.
+            if (!context.Recipes.Any())
             {
-                new Ingredient
+                var recipes = new Recipe[]
                 {
-                    Name = "Vodka"
-                },
-                new Ingredient
-                {
-                    Name = "Beer"
-                },
-                new Ingredient
-                {
-                    Name = "Water"
-                },
-                new Ingredient
-                {
-                    Name = "Rum"
-                },
-                new Ingredient
-                {
-                    Name = "Whisky"
-                },
-                new Ingredient
-                {
-                    Name = "Potato"
-                },
-                new Ingredient
-                {
-                    Name = "Strawberry"
-                },
-                new Ingredient
-                {
-                    Name = "Tomato"
-                },
-                new Ingredient
-                {
-                    Name = "Apple"
-                },
-                new Ingredient
-                {
-                    Name = "Ginseng"
-                },
+                    new Recipe
+                    {
+                        Name = "Black Out Recipe",
+                        Student = context.Students.First(student => student.ID == 1),
+                        Ingredients = context.Ingredients.Where(ingredient => ingredient.ID > 0 && ingredient.ID <= 5).ToHashSet(),
+                    },
+                    new Recipe
+                    {
+                        Name = "Russian Soup Recipe",
+                        Student = context.Students.First(student => student.ID == 3),
+                        Ingredients = context.Ingredients.Where(ingredient => ingredient.ID == 1 || ingredient.ID == 5 || ingredient.ID == 6 || ingredient.ID == 8 || ingredient.ID == 10).ToHashSet(),
+                    },
+                };
 
-            };
+                foreach (var recipe in recipes)
+                {
+                    context.Recipes.Add(recipe);
+                }
 
-            foreach (var ingredient in ingredients)
-            {
-                context.Ingredients.Add(ingredient);
+                context.SaveChanges();
             }
-            context.SaveChanges();
+
+            // Look for any potions.
+            if (!context.Potions.Any())
+            {
+                var potions = new Potion[]
+                {
+                    new Potion
+                    {
+                        Name = "Potion of Black Out",
+                        Student = context.Students.First(student => student.ID == 3),
+                        Recipe = context.Recipes.First(recipe => recipe.Name == "Black Out Recipe"),
+                        Ingredients = context.Ingredients.Where(ingredient => ingredient.ID > 0 && ingredient.ID <= 5).ToHashSet(),
+                        BrewingStatus = BrewingStatus.Replica
+                    },
+                    new Potion
+                    {
+                        Name = "Something Stew",
+                        Student = context.Students.First(student => student.ID == 2),
+                        Recipe = null,
+                        Ingredients = context.Ingredients.Where(ingredient => ingredient.ID > 5 && ingredient.ID <= 10).ToHashSet(),
+                        BrewingStatus = BrewingStatus.Discovery
+                    },
+                    new Potion
+                    {
+                        Name = "Potion of Strength",
+                        Student = context.Students.First(student => student.ID == 1),
+                        Recipe = null,
+                        Ingredients = context.Ingredients.Where(ingredient => ingredient.ID == 1 || ingredient.ID == 7).ToHashSet(),
+                        BrewingStatus = BrewingStatus.Brew
+                    },
+
+                };
+
+                foreach (var potion in potions)
+                {
+                    context.Potions.Add(potion);
+                }
+
+                context.SaveChanges();
+            }
         }
     }
 }
