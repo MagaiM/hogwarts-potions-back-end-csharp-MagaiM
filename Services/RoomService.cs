@@ -32,10 +32,11 @@ namespace HogwartsPotions.Services
             return Task.FromResult(rooms);
         }
 
-        public async Task AddRoom(Room room)
+        public async Task<Room> AddRoom(Room room)
         {
             _context.Rooms.Add(room);
             await _context.SaveChangesAsync();
+            return room;
         }
 
         public async Task UpdateRoom(long id, Room room)
