@@ -51,5 +51,10 @@ namespace HogwartsPotions.Controllers
         {
             return await _roomService.GetRoomsForRatOwners();
         }
+
+        public async Task AddStudentToRoom(long id, [FromBody] Student student)
+        {
+            await _roomService.AddStudentToRoom(id, student.ID);
+        }
     }
 }
