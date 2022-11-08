@@ -34,6 +34,7 @@ namespace HogwartsPotions
 
             services.AddTransient<RoomService>();
             services.AddTransient<PotionService>();
+            services.AddTransient<StudentService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
