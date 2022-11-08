@@ -12,10 +12,12 @@ namespace HogwartsPotions.Services
     public class RoomService
     {
         private readonly HogwartsContext _context;
+        private readonly StudentService _studentService;
 
-        public RoomService(HogwartsContext context)
+        public RoomService(HogwartsContext context, StudentService studentService)
         {
             _context = context;
+            _studentService = studentService;
         }
 
         public Task<Room> GetRoom(long roomId)
@@ -70,6 +72,38 @@ namespace HogwartsPotions.Services
                 select room).ToList();
 
             return Task.FromResult(rooms);
+        }
+
+        public async Task RemoveStudentFromRoom(Room room, Student student)
+        {
+            try
+            {
+                _context.Rooms.First(r => r.Equals(room)).Residents.Remove(student);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+        public async Task<string> AddStudentToRoom(long roomId, long studentId)
+        {
+            var room = GetRoom(roomId);
+            var student = _studentService.GetStudent(studentId);
+            try
+            {
+                if (room.Result.Residents.Count != 0 && room.Result.HouseType != student.Result.HouseType) return "Can't move to that room!";
+                if (student.Result.Room != null) await RemoveStudentFromRoom(student.Result.Room, student.Result);
+                _context.Students.First(s => s.Equals(student.Result)).Room = room.Result;
+                _context.Rooms.First(r => r.Equals(room.Result)).Residents.Add(student.Result);
+                await _context.SaveChangesAsync();
+                return "Success";
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return "Something went wrong!";
+            }
         }
     }
 }
