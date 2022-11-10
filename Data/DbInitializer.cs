@@ -20,18 +20,22 @@ namespace HogwartsPotions.Data
                     new Room
                     {
                         Capacity = 10,
+                        RoomHouseType = HouseType.Gryffindor
                     },
                     new Room
                     {
                         Capacity = 10,
+                        RoomHouseType = HouseType.Hufflepuff
                     },
                     new Room
                     {
                         Capacity = 10,
+                        RoomHouseType = HouseType.Ravenclaw
                     },
                     new Room
                     {
                         Capacity = 10,
+                        RoomHouseType = HouseType.Slytherin
                     }
                 };
 
@@ -67,7 +71,7 @@ namespace HogwartsPotions.Data
                         HouseType = HouseType.Slytherin,
                         Name = "Draco Melfloy",
                         PetType = PetType.None,
-                        Room = context.Rooms.First(room => room.ID == 2),
+                        Room = context.Rooms.First(room => room.ID == 4),
                     }
                 };
 
