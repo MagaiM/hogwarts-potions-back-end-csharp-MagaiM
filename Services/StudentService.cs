@@ -20,7 +20,7 @@ namespace HogwartsPotions.Services
 
         public Task<Student> GetStudent(long studentId)
         {
-            var student = _context.Students.ToListAsync().Result.FirstOrDefault(student => student.ID == studentId);
+            var student = _context.Students.Include(student => student.Room).ToListAsync().Result.FirstOrDefault(student => student.ID == studentId);
 
             return Task.FromResult(student);
         }
