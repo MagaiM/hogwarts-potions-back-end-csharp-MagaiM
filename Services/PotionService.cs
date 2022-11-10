@@ -186,17 +186,17 @@ namespace HogwartsPotions.Services
             return potion;
         }
 
-        public async Task<List<Recipe>> HelpFinishBrew(long potionId)
+        public Task<List<Recipe>> HelpFinishBrew(long potionId)
         {
             var ingredients = _context.Potions.Include(p => p.Ingredients).ToListAsync().Result
                 .FirstOrDefault(p => p.ID == potionId)
                 ?.Ingredients;
-            if (ingredients == null) return null;
+            if (ingredients == null) return Task.FromResult<List<Recipe>>(null);
 
             var allRecipes = _context.Recipes.Include(r => r.Ingredients).Include(r => r.Student).ToListAsync().Result;
             var result = allRecipes.FindAll(r => r.Ingredients.IsSupersetOf(ingredients));
 
-            return result;
+            return Task.FromResult(result);
         }
     }
 }
