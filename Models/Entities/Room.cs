@@ -14,10 +14,6 @@ namespace HogwartsPotions.Models.Entities
 
         public HashSet<Student> Residents { get; set; } = new HashSet<Student>();
 
-        public HouseType HouseType
-        {
-            get => HouseType;
-            set => HouseType = Residents.Count > 0 ? Residents.First().HouseType : HouseType.none;
-        }
+        public HouseType RoomHouseType { get; set; }
     }
 }
