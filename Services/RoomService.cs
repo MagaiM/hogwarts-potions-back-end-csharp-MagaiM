@@ -14,6 +14,8 @@ namespace HogwartsPotions.Services
     {
         private readonly HogwartsContext _context;
         private readonly StudentService _studentService;
+        private const int MinRoomCapacity = 1;
+        private const int MaxRoomCapacity = 999;
 
         public RoomService(HogwartsContext context, StudentService studentService)
         {
@@ -45,9 +47,17 @@ namespace HogwartsPotions.Services
 
         public async Task<Room> AddRoom(AddRoomDTO room)
         {
+            var newRoomCapacity = room.Capacity switch
+            {
+                < MinRoomCapacity => MinRoomCapacity,
+                > MaxRoomCapacity => MaxRoomCapacity,
+                _ => room.Capacity
+            };
+            if ((int) room.RoomHouseType < 0 || (int) room.RoomHouseType > 3) return null;
+            
             var newRoom = new Room
             {
-                Capacity = room.Capacity,
+                Capacity = newRoomCapacity,
                 RoomHouseType = room.RoomHouseType
             };
             _context.Rooms.Add(newRoom);
@@ -62,27 +72,12 @@ namespace HogwartsPotions.Services
             if (originalRoom.Result.Capacity != room.Capacity)
                 originalRoom.Result.Capacity = room.Capacity switch
                 {
-                    > 999 => 999,
-                    <= 0 => 1,
+                    > MaxRoomCapacity => MaxRoomCapacity,
+                    < MinRoomCapacity => MinRoomCapacity,
                     _ => room.Capacity < originalRoom.Result.Residents.Count
                         ? originalRoom.Result.Residents.Count
                         : room.Capacity
                 };
-            //if (originalRoom.Result.Capacity != room.Capacity)
-            //    switch (room.Capacity)
-            //    {
-            //        case > 999:
-            //            originalRoom.Result.Capacity = 999;
-            //            break;
-            //        case <= 0:
-            //            originalRoom.Result.Capacity = 1;
-            //            break;
-            //        default:
-            //            {
-            //                originalRoom.Result.Capacity = room.Capacity < originalRoom.Result.Residents.Count ? originalRoom.Result.Residents.Count : room.Capacity;
-            //                break;
-            //            }
-            //    }
             if (originalRoom.Result.RoomHouseType != room.RoomHouseType)
             {
                 if (originalRoom.Result.Residents.Any()) return "You can only change the House type of an empty room!";
