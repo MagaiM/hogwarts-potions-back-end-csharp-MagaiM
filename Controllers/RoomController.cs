@@ -49,7 +49,7 @@ namespace HogwartsPotions.Controllers
             return result == "Success" ? Ok() : BadRequest(result);
         }
 
-        [HttpGet("/room/rat-owners")]
+        [HttpGet("/room/rat-friendly")]
         public async Task<List<Room>> GetRoomsForRatOwners()
         {
             return await _roomService.GetRoomsForRatOwners();
