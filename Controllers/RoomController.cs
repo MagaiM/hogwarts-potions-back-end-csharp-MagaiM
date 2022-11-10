@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using HogwartsPotions.Models.DTOs;
 using HogwartsPotions.Models.Entities;
 using HogwartsPotions.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -23,7 +24,7 @@ namespace HogwartsPotions.Controllers
         }
 
         [HttpPost]
-        public async Task<Room> AddRoom([FromBody] Room room)
+        public async Task<Room> AddRoom([FromBody] AddRoomDTO room)
         {
             return await _roomService.AddRoom(room);
         }
@@ -35,15 +36,17 @@ namespace HogwartsPotions.Controllers
         }
 
         [HttpPut("/room/{id:long}")]
-        public async Task UpdateRoomById(long id, [FromBody] Room updatedRoom)
+        public async Task<IActionResult> UpdateRoomById(long id, [FromBody] Room updatedRoom)
         {
-            await _roomService.UpdateRoom(id, updatedRoom);
+            var result = await _roomService.UpdateRoom(id, updatedRoom);
+            return result == "Success" ? Ok() : BadRequest(result);
         }
 
         [HttpDelete("/room/{id:long}")]
-        public async Task DeleteRoomById(long id)
+        public async Task<IActionResult> DeleteRoomById(long id)
         {
-            await _roomService.DeleteRoom(id);
+            var result = await _roomService.DeleteRoom(id);
+            return result == "Success" ? Ok() : BadRequest(result);
         }
 
         [HttpGet("/room/rat-owners")]
@@ -52,9 +55,11 @@ namespace HogwartsPotions.Controllers
             return await _roomService.GetRoomsForRatOwners();
         }
 
-        public async Task AddStudentToRoom(long id, [FromBody] Student student)
+        [HttpPut("/room/{id:long}/move-student")]
+        public async Task<IActionResult> AddStudentToRoom(long id, int studentId)
         {
-            await _roomService.AddStudentToRoom(id, student.ID);
+            var result = await _roomService.AddStudentToRoom(id, studentId);
+            return result == "Success" ? Ok() : BadRequest(result);
         }
     }
 }
