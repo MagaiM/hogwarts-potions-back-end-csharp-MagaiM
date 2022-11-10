@@ -5,7 +5,6 @@
         Gryffindor,
         Hufflepuff,
         Ravenclaw,
-        Slytherin,
-        none
+        Slytherin
     }
 }
