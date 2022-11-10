@@ -5,7 +5,7 @@ namespace HogwartsPotions.Models.DTOs
     public class AddRoomDTO
     {
 
-        public long Capacity { get; set; }
+        public int Capacity { get; set; }
 
         public HouseType RoomHouseType { get; set; }
     }
