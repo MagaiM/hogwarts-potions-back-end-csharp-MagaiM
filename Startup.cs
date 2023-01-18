@@ -1,7 +1,9 @@
 using HogwartsPotions.Models;
+using HogwartsPotions.Models.Entities;
 using HogwartsPotions.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +26,16 @@ namespace HogwartsPotions
         {
             services.AddDbContext<HogwartsContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddIdentity<Student, IdentityRole>(options =>
+                {
+                    options.SignIn.RequireConfirmedAccount = false;
+                    options.Password.RequireDigit = true;
+                    options.Password.RequiredLength = 4;
+                    options.Password.RequireNonAlphanumeric = false;
+                    options.Password.RequireUppercase = true;
+                    options.Password.RequireLowercase = false;
+                })
+                .AddEntityFrameworkStores<HogwartsContext>();
 
             services.AddControllersWithViews().AddNewtonsoftJson(
                 options =>
@@ -52,6 +64,8 @@ namespace HogwartsPotions
             }
             //app.UseHttpsRedirection();
             app.UseStaticFiles();
+
+            app.UseAuthentication();
 
             app.UseRouting();
 
