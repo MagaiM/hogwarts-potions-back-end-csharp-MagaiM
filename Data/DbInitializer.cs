@@ -55,7 +55,7 @@ namespace HogwartsPotions.Data
                         Name = "Potion of Black Out",
                         Student = context.Students.First(student => student.UserName == "Draco Melfloy"),
                         Recipe = context.Recipes.First(recipe => recipe.Name == "Black Out Recipe"),
-                        Ingredients = context.Ingredients.Where(ingredient => ingredient.ID > 0 && ingredient.ID <= 5).ToHashSet(),
+                        Ingredients = context.Ingredients.Where(ingredient => ingredient.Id > 0 && ingredient.Id <= 5).ToHashSet(),
                         BrewingStatus = BrewingStatus.Replica
                     },
                     new Potion
@@ -66,9 +66,9 @@ namespace HogwartsPotions.Data
                         {
                             Name = "Something Stew Recipe",
                             Student = context.Students.First(student => student.UserName == "Harry Potter"),
-                            Ingredients = context.Ingredients.Where(ingredient => ingredient.ID > 5 && ingredient.ID <= 10).ToHashSet(),
+                            Ingredients = context.Ingredients.Where(ingredient => ingredient.Id > 5 && ingredient.Id <= 10).ToHashSet(),
                         },
-                        Ingredients = context.Ingredients.Where(ingredient => ingredient.ID > 5 && ingredient.ID <= 10).ToHashSet(),
+                        Ingredients = context.Ingredients.Where(ingredient => ingredient.Id > 5 && ingredient.Id <= 10).ToHashSet(),
                         BrewingStatus = BrewingStatus.Discovery
                     },
                     new Potion
@@ -76,7 +76,7 @@ namespace HogwartsPotions.Data
                         Name = "Potion of Strength",
                         Student = context.Students.First(student => student.UserName == "Hermione Granger"),
                         Recipe = null,
-                        Ingredients = context.Ingredients.Where(ingredient => ingredient.ID == 1 || ingredient.ID == 7).ToHashSet(),
+                        Ingredients = context.Ingredients.Where(ingredient => ingredient.Id == 1 || ingredient.Id == 7).ToHashSet(),
                         BrewingStatus = BrewingStatus.Brew
                     },
                 };
@@ -97,13 +97,13 @@ namespace HogwartsPotions.Data
                 {
                     Name = "Black Out Recipe",
                     Student = context.Students.First(student => student.UserName == "Hermione Granger"),
-                    Ingredients = context.Ingredients.Where(ingredient => ingredient.ID > 0 && ingredient.ID <= 5).ToHashSet(),
+                    Ingredients = context.Ingredients.Where(ingredient => ingredient.Id > 0 && ingredient.Id <= 5).ToHashSet(),
                 },
                 new Recipe
                 {
                     Name = "Russian Soup Recipe",
                     Student = context.Students.First(student => student.UserName == "Draco Melfloy"),
-                    Ingredients = context.Ingredients.Where(ingredient => ingredient.ID == 1 || ingredient.ID == 5 || ingredient.ID == 6 || ingredient.ID == 8 || ingredient.ID == 10).ToHashSet(),
+                    Ingredients = context.Ingredients.Where(ingredient => ingredient.Id == 1 || ingredient.Id == 5 || ingredient.Id == 6 || ingredient.Id == 8 || ingredient.Id == 10).ToHashSet(),
                 },
             };
 
@@ -212,28 +212,28 @@ namespace HogwartsPotions.Data
                     UserName = "Hermione Granger",
                     HouseType = HouseType.Gryffindor,
                     PetType = PetType.Cat,
-                    Room = context.Rooms.First(room => room.ID == 1)
+                    Room = context.Rooms.First(room => room.Id == 1)
                 },
                 new Student
                 {
                     UserName = "Harry Potter",
                     HouseType = HouseType.Gryffindor,
                     PetType = PetType.Owl,
-                    Room = context.Rooms.First(room => room.ID == 1)
+                    Room = context.Rooms.First(room => room.Id == 1)
                 },
                 new Student
                 {
                     UserName = "Draco Melfloy",
                     HouseType = HouseType.Slytherin,
                     PetType = PetType.None,
-                    Room = context.Rooms.First(room => room.ID == 4)
+                    Room = context.Rooms.First(room => room.Id == 4)
                 }
             };
 
             foreach (var student in students)
             {
                 await userManager.CreateAsync(student, "Abc123");
-                context.Rooms.First(room => room.ID == student.Room.ID).Residents.Add(student);
+                context.Rooms.First(room => room.Id == student.Room.Id).Residents.Add(student);
             }
             return context.SaveChangesAsync().Result;
         }
