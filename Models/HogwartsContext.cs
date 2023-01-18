@@ -1,9 +1,10 @@
 using HogwartsPotions.Models.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace HogwartsPotions.Models
 {
-    public class HogwartsContext : DbContext
+    public class HogwartsContext : IdentityDbContext
     {
         public const int MaxIngredientsForPotions = 5;
 
@@ -19,8 +20,9 @@ namespace HogwartsPotions.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<Room>().ToTable("Room");
-            modelBuilder.Entity<Student>().ToTable("Student");
+            modelBuilder.Entity<Student>().ToTable("Student").HasIndex(s => s.UserName).IsUnique();
             modelBuilder.Entity<Ingredient>().ToTable("Ingredient");
             modelBuilder.Entity<Recipe>().ToTable("Recipe");
             modelBuilder.Entity<Potion>().ToTable("Potion");
