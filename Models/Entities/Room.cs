@@ -11,7 +11,7 @@ namespace HogwartsPotions.Models.Entities
 
         public int Capacity { get; set; }
 
-        public HashSet<Student> Residents { get; set; } = new HashSet<Student>();
+        public HashSet<Student> Residents { get; set; } = new();
 
         public HouseType RoomHouseType { get; set; }
     }
