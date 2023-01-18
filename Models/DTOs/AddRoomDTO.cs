@@ -2,7 +2,7 @@
 
 namespace HogwartsPotions.Models.DTOs
 {
-    public class AddRoomDTO
+    public class AddRoomDto
     {
 
         public int Capacity { get; set; }
