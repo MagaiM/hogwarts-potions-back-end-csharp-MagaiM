@@ -28,8 +28,8 @@ namespace HogwartsPotions.Controllers
             return await _potionService.AddPotion(potion);
         }
 
-        [HttpGet("/potions/{studentId:long}")]
-        public async Task<List<Potion>> GetAllPotionByStudent(long studentId)
+        [HttpGet("/potions/{studentId}")]
+        public async Task<List<Potion>> GetAllPotionByStudent(string studentId)
         {
             return await _potionService.GetAllPotionByStudent(studentId);
         }
