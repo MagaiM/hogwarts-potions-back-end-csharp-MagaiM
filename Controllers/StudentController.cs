@@ -33,8 +33,8 @@ namespace HogwartsPotions.Controllers
             return await _studentService.GetAllStudents();
         }
 
-        [HttpPost("/student/first-step")]
-        public async Task<IActionResult> AddStudentFirstStep([FromBody] AddStudentInProgressDto student)
+        [HttpPost("/student/register")]
+        public async Task<IActionResult> AddStudent([FromBody] AddStudentInProgressDto student)
         {
             try
             {
@@ -71,8 +71,8 @@ namespace HogwartsPotions.Controllers
             }
         }
 
-        [HttpPost("/student/second-step/{id}")]
-        public async Task<IActionResult> AddStudentSecondStep(string id, [FromBody] Room room)
+        [HttpPost("/student/add-room/{id}")]
+        public async Task<IActionResult> AddStudentToRoom(string id, [FromBody] Room room)
         {
             try
             {
