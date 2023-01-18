@@ -25,7 +25,7 @@ namespace HogwartsPotions.Services
 
         public Task<Room> GetRoom(long roomId)
         {
-            var room = _context.Rooms.Include(room => room.Residents).ToListAsync().Result.FirstOrDefault(room => room.ID == roomId);
+            var room = _context.Rooms.Include(room => room.Residents).ToListAsync().Result.FirstOrDefault(room => room.Id == roomId);
 
             return Task.FromResult(room);
         }
@@ -45,7 +45,7 @@ namespace HogwartsPotions.Services
             }
         }
 
-        public async Task<Room> AddRoom(AddRoomDTO room)
+        public async Task<Room> AddRoom(AddRoomDto room)
         {
             var newRoomCapacity = room.Capacity switch
             {
@@ -117,6 +117,17 @@ namespace HogwartsPotions.Services
             return Task.FromResult(rooms);
         }
 
+        public Task<List<Room>> GetRoomsForRatOwners(List<Room> allRooms)
+        {
+            var rooms = (from room in allRooms
+                let ratable =
+                    room.Residents.All(roomResident => roomResident.PetType is not (PetType.Cat or PetType.Owl))
+                where ratable
+                select room).ToList();
+
+            return Task.FromResult(rooms);
+        }
+
         public async Task RemoveStudentFromRoom(Room room, Student student)
         {
             try
@@ -129,11 +140,11 @@ namespace HogwartsPotions.Services
                 throw new Exception(e.Message);
             }
         }
-        public async Task<string> AddStudentToRoom(long roomId, long studentId)
+        public async Task<string> AddStudentToRoom(long roomId, string studentId)
         {
             var room = GetRoom(roomId);
             if (room == null) return "Room does not exists!";
-            var student = _studentService.GetStudent(studentId);
+            var student = _studentService.GetStudentById(studentId);
             try
             {
                 if (room.Result.RoomHouseType != student.Result.HouseType) return "Can't move to that room!";
@@ -148,6 +159,29 @@ namespace HogwartsPotions.Services
                 Console.WriteLine(e.Message);
                 return "Something went wrong!";
             }
+        }
+
+        public Task<List<Room>> GetAvailableRooms(Student student)
+        {
+            try
+            {
+                var listOfRoomByHouseType = _context.Rooms.Where(r => r.RoomHouseType == student.HouseType && r.Capacity > r.Residents.Count).ToList();
+                return student.PetType == PetType.Rat ? GetRoomsForRatOwners(listOfRoomByHouseType) : Task.FromResult(listOfRoomByHouseType);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+
+        public async Task<Room> GetValidRoom(long roomId, string studentId)
+        {
+            var validRoom = await GetRoom(roomId);
+            var availableRooms = GetAvailableRooms(_studentService.GetStudentById(studentId).Result).Result;
+            if (validRoom != null && validRoom.Capacity > validRoom.Residents.Count && availableRooms.Contains(validRoom))
+                return validRoom;
+            return null;
         }
     }
 }
