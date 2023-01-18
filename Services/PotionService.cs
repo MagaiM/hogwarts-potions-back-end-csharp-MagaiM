@@ -17,10 +17,10 @@ namespace HogwartsPotions.Services
             _context = context;
         }
 
-        public Task<Student> GetStudent(long studentId)
+        public Task<Student> GetStudent(string studentId)
         {
             var student = _context.Students.Include(student => student.Room).ToListAsync().Result
-                .FirstOrDefault(student => student.ID == studentId);
+                .FirstOrDefault(student => student.Id == studentId);
             return Task.FromResult(student);
         }
 
@@ -35,7 +35,7 @@ namespace HogwartsPotions.Services
         public async Task<Potion> AddPotion(CreatePotion createPotion)
         {
             var student = GetStudent(createPotion.StudentId).Result;
-            var recipe = new Recipe();
+            Recipe recipe;
             var ingredients = GetIngredients(createPotion.Ingredients);
             BrewingStatus brewingStatus;
 
@@ -105,14 +105,14 @@ namespace HogwartsPotions.Services
 
         private string GenerateRecipeName(Student student)
         {
-            var studentRecipes = _context.Recipes.ToListAsync().Result.Where(recipe => recipe.Student.ID == student.ID).ToList();
-            return $"{student.Name}'s discovery #{studentRecipes.Count + 1}";
+            var studentRecipes = _context.Recipes.ToListAsync().Result.Where(recipe => recipe.Student.Id == student.Id).ToList();
+            return $"{student.UserName}'s discovery #{studentRecipes.Count + 1}";
         }
 
-        public Task<List<Potion>> GetAllPotionByStudent(long studentId)
+        public Task<List<Potion>> GetAllPotionByStudent(string studentId)
         {
             var potions = _context.Potions.Include(potion => potion.Ingredients).Include(potion => potion.Recipe).Include(p => p.Student).ToListAsync()
-                .Result.Where(p => p.Student.ID == studentId).ToList();
+                .Result.Where(p => p.Student.Id == studentId).ToList();
 
             return Task.FromResult(potions);
         }
@@ -120,11 +120,10 @@ namespace HogwartsPotions.Services
         public async Task<Potion> BrewPotion(BrewPotion brewPotion)
         {
             var student = GetStudent(brewPotion.StudentId).Result;
-            var potions = GetAllPotionByStudent(student.ID).Result;
-            var brewingStatus = BrewingStatus.Brew;
+            var potions = GetAllPotionByStudent(student.Id).Result;
+            const BrewingStatus brewingStatus = BrewingStatus.Brew;
             var ingredients = new HashSet<Ingredient>();
-            Recipe recipe = null;
-            var name = $"{student.Name}'s potion #{potions.Count + 1}";
+            var name = $"{student.UserName}'s potion #{potions.Count + 1}";
 
             var potion = new Potion
             {
@@ -132,7 +131,7 @@ namespace HogwartsPotions.Services
                 BrewingStatus = brewingStatus,
                 Ingredients = ingredients,
                 Student = student,
-                Recipe = recipe
+                Recipe = null
             };
 
             _context.Potions.Add(potion);
@@ -144,7 +143,7 @@ namespace HogwartsPotions.Services
         public async Task<Potion> AddIngredientToPotion(long potionId, Ingredient newIngredient)
         {
             var potion = _context.Potions.Include(p => p.Ingredients).Include(p => p.Recipe).Include(p => p.Student)
-                .ToListAsync().Result.FirstOrDefault(potion => potion.ID == potionId);
+                .ToListAsync().Result.FirstOrDefault(potion => potion.Id == potionId);
             if (potion == null || potion.Ingredients.Count >= HogwartsContext.MaxIngredientsForPotions) return null;
 
             var ingredients = potion.Ingredients;
@@ -189,7 +188,7 @@ namespace HogwartsPotions.Services
         public Task<List<Recipe>> HelpFinishBrew(long potionId)
         {
             var ingredients = _context.Potions.Include(p => p.Ingredients).ToListAsync().Result
-                .FirstOrDefault(p => p.ID == potionId)
+                .FirstOrDefault(p => p.Id == potionId)
                 ?.Ingredients;
             if (ingredients == null) return Task.FromResult<List<Recipe>>(null);
 
