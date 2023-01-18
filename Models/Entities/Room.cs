@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
 using HogwartsPotions.Models.Enums;
 
 namespace HogwartsPotions.Models.Entities
@@ -8,7 +7,7 @@ namespace HogwartsPotions.Models.Entities
     public class Room
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long ID { get; set; }
+        public long Id { get; set; }
 
         public int Capacity { get; set; }
 
