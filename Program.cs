@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using HogwartsPotions.Data;
 using HogwartsPotions.Models;
+using HogwartsPotions.Models.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -17,7 +19,6 @@ namespace HogwartsPotions
             CreateDbIfNotExists(host);
 
             host.Run();
-            //CreateHostBuilder(args).Build().Run();
         }
 
         private static void CreateDbIfNotExists(IHost host)
@@ -28,7 +29,8 @@ namespace HogwartsPotions
                 try
                 {
                     var context = services.GetRequiredService<HogwartsContext>();
-                    DbInitializer.Initialize(context);
+                    var userManager = services.GetRequiredService<UserManager<Student>>();
+                    DbInitializer.Initialize(context, userManager);
                 }
                 catch (Exception ex)
                 {
