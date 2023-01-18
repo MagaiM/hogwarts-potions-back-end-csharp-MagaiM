@@ -24,7 +24,7 @@ namespace HogwartsPotions.Controllers
         }
 
         [HttpPost]
-        public async Task<Room> AddRoom([FromBody] AddRoomDTO room)
+        public async Task<Room> AddRoom([FromBody] AddRoomDto room)
         {
             return await _roomService.AddRoom(room);
         }
@@ -56,7 +56,7 @@ namespace HogwartsPotions.Controllers
         }
 
         [HttpPut("/room/{id:long}/move-student")]
-        public async Task<IActionResult> AddStudentToRoom(long id, int studentId)
+        public async Task<IActionResult> AddStudentToRoom(long id, string studentId)
         {
             var result = await _roomService.AddStudentToRoom(id, studentId);
             return result == "Success" ? Ok() : BadRequest(result);
