@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace HogwartsPotions.Models
 {
-    public class HogwartsContext : IdentityDbContext
+    public class HogwartsContext : IdentityDbContext<Student>
     {
         public const int MaxIngredientsForPotions = 5;
 
