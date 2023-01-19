@@ -2,15 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using HogwartsPotions.Auth;
-using HogwartsPotions.Helpers;
 using HogwartsPotions.Models;
-using HogwartsPotions.Models.DTOs;
 using HogwartsPotions.Models.Entities;
-using HogwartsPotions.Models.Enums;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace HogwartsPotions.Services
@@ -18,16 +11,10 @@ namespace HogwartsPotions.Services
     public class StudentService
     {
         private readonly HogwartsContext _context;
-        private readonly UserManager<Student> _userManager;
-        private readonly StudentHelper _studentHelper = new();
 
-        public StudentService(
-            HogwartsContext context,
-            UserManager<Student> userManager
-            )
+        public StudentService(HogwartsContext context)
         {
             _context = context;
-            _userManager = userManager;
         }
 
         public Task<Student> GetStudentById(string studentId)
@@ -50,36 +37,6 @@ namespace HogwartsPotions.Services
 
             return Task.FromResult(students);
         }
-
-        //public async Task<IActionResult> AddRoomlessStudent(RegisterStudentDto student)
-        //{
-        //    if (student == null) return null;
-        //    try
-        //    {
-        //        var newStudentHouseType = student.PreferredHouseType == null || (int)student.PreferredHouseType < 0 || (int)student.PreferredHouseType > 3 ?
-        //        _studentHelper.GetRandomHouseType() :
-        //        _studentHelper.GetRandomHouseType((HouseType)student.PreferredHouseType);
-
-        //        var newStudent = new Student
-        //        {
-        //            HouseType = newStudentHouseType,
-        //            UserName = student.UserName,
-        //            SecurityStamp = Guid.NewGuid().ToString(),
-        //            PetType = student.PetType
-        //        };
-        //        var result = _userManager.CreateAsync(newStudent, student.Password);
-        //        await _context.SaveChangesAsync();
-
-        //        if (!result.Succeeded)
-        //            return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User creation failed! Please check user details and try again." });
-
-        //        return Ok(new Response { Status = "Success", Message = "User created successfully!" });
-        //    }
-        //    catch (Exception)
-        //    {
-        //        return null;
-        //    }
-        //}
 
         public async Task<Student> AddStudentToRoom(string id, Room validRoom)
         {
@@ -122,13 +79,6 @@ namespace HogwartsPotions.Services
             {
                 throw new Exception(e.Message);
             }
-        }
-
-        public Task<bool> IsStudentNameAlreadyExists(string studentName)
-        {
-            var student = _context.Students.FirstOrDefault(s => s.UserName == studentName);
-
-            return Task.FromResult(student != null);
         }
     }
 }
