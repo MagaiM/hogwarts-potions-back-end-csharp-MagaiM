@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HogwartsPotions.Auth;
 using HogwartsPotions.Helpers;
 using HogwartsPotions.Models;
 using HogwartsPotions.Models.DTOs;
 using HogwartsPotions.Models.Entities;
 using HogwartsPotions.Models.Enums;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace HogwartsPotions.Services
@@ -48,32 +51,35 @@ namespace HogwartsPotions.Services
             return Task.FromResult(students);
         }
 
-        public async Task<Student> AddRoomlessStudent(AddStudentInProgressDto student)
-        {
-            if (student == null) return null;
-            try
-            {
-                if (GetStudentByName(student.UserName).Result != null) return null;
+        //public async Task<IActionResult> AddRoomlessStudent(RegisterStudentDto student)
+        //{
+        //    if (student == null) return null;
+        //    try
+        //    {
+        //        var newStudentHouseType = student.PreferredHouseType == null || (int)student.PreferredHouseType < 0 || (int)student.PreferredHouseType > 3 ?
+        //        _studentHelper.GetRandomHouseType() :
+        //        _studentHelper.GetRandomHouseType((HouseType)student.PreferredHouseType);
 
-                var newStudentHouseType = student.PreferredHouseType == null || (int)student.PreferredHouseType < 0 || (int)student.PreferredHouseType > 3 ?
-                _studentHelper.GetRandomHouseType() :
-                _studentHelper.GetRandomHouseType((HouseType)student.PreferredHouseType);
+        //        var newStudent = new Student
+        //        {
+        //            HouseType = newStudentHouseType,
+        //            UserName = student.UserName,
+        //            SecurityStamp = Guid.NewGuid().ToString(),
+        //            PetType = student.PetType
+        //        };
+        //        var result = _userManager.CreateAsync(newStudent, student.Password);
+        //        await _context.SaveChangesAsync();
 
-                var newStudent = new Student
-                {
-                    HouseType = newStudentHouseType,
-                    UserName = student.UserName,
-                    PetType = student.PetType
-                };
-                await _userManager.CreateAsync(newStudent, student.Password);
-                await _context.SaveChangesAsync();
-                return newStudent;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
+        //        if (!result.Succeeded)
+        //            return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User creation failed! Please check user details and try again." });
+
+        //        return Ok(new Response { Status = "Success", Message = "User created successfully!" });
+        //    }
+        //    catch (Exception)
+        //    {
+        //        return null;
+        //    }
+        //}
 
         public async Task<Student> AddStudentToRoom(string id, Room validRoom)
         {
