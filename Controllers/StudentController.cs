@@ -1,13 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
+using HogwartsPotions.Auth;
+using HogwartsPotions.Helpers;
 using HogwartsPotions.Models.DTOs;
 using HogwartsPotions.Models.Entities;
+using HogwartsPotions.Models.Enums;
 using HogwartsPotions.Models.View_Models;
 using HogwartsPotions.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 
 namespace HogwartsPotions.Controllers
 {
@@ -16,15 +24,23 @@ namespace HogwartsPotions.Controllers
     {
         private readonly StudentService _studentService;
         private readonly RoomService _roomService;
+        private readonly IConfiguration _configuration;
         private readonly UserManager<Student> _userManager;
-        private readonly SignInManager<Student> _signInManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly StudentHelper _studentHelper = new();
 
-        public StudentController(StudentService studentService, RoomService roomService, UserManager<Student> userManager, SignInManager<Student> signInManager)
+        public StudentController(
+            StudentService studentService, 
+            RoomService roomService, 
+            UserManager<Student> userManager,
+            RoleManager<IdentityRole> roleManager,
+            IConfiguration configuration)
         {
             _studentService = studentService;
             _roomService = roomService;
             _userManager = userManager;
-            _signInManager = signInManager;
+            _configuration = configuration;
+            _roleManager = roleManager;
         }
 
         [HttpGet]
@@ -34,41 +50,68 @@ namespace HogwartsPotions.Controllers
         }
 
         [HttpPost("/student/register")]
-        public async Task<IActionResult> AddStudent([FromBody] AddStudentInProgressDto student)
+        public async Task<IActionResult> RegisterStudent([FromBody] RegisterStudentDto model)
         {
             try
             {
-                if (_studentService.IsStudentNameAlreadyExists(student.UserName).Result)
-                    return BadRequest("Student with this name already exists!");
-                var roomlessStudent = await _studentService.AddRoomlessStudent(student);
-                var availableRooms = _roomService.GetAvailableRooms(roomlessStudent);
-                if (!availableRooms.Result.Any())
-                {
-                    var newRoomDto = new AddRoomDto()
-                    {
-                        Capacity = 10,
-                        RoomHouseType = roomlessStudent.HouseType
-                    };
-                    var newRoom = await _roomService.AddRoom(newRoomDto);
-                    availableRooms.Result.Add(newRoom);
-                }
+                var userExists = await _userManager.FindByNameAsync(model.UserName);
+                if (userExists != null)
+                    return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User already exists!" });
+                
+                var newStudentHouseType = model.PreferredHouseType == null || (int)model.PreferredHouseType < 0 || (int)model.PreferredHouseType > 3 ?
+                    _studentHelper.GetRandomHouseType() :
+                    _studentHelper.GetRandomHouseType((HouseType)model.PreferredHouseType);
 
-                var roomlessStudentView = new RoomlessStudentView()
+                var newStudent = new Student
                 {
-                    Id = roomlessStudent.Id,
-                    UserName = roomlessStudent.UserName,
-                    HouseType = roomlessStudent.HouseType,
-                    PetType = roomlessStudent.PetType,
-                    AvailableRooms = availableRooms.Result
+                    HouseType = newStudentHouseType,
+                    UserName = model.UserName,
+                    SecurityStamp = Guid.NewGuid().ToString(),
+                    PetType = model.PetType
                 };
-                return Ok(roomlessStudentView);
+                var result = await _userManager.CreateAsync(newStudent, model.Password);
+                if (!result.Succeeded)
+                    return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User creation failed! Please check user details and try again." });
 
+                return Ok(new Response { Status = "Success", Message = "User created successfully!" });
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
                 return BadRequest("Something went wrong");
             }
+        }
+
+        [HttpPost("/admin/register")]
+        public async Task<IActionResult> RegisterAdmin([FromBody] RegisterStudentDto model)
+        {
+            var userExists = await _userManager.FindByNameAsync(model.UserName);
+            if (userExists != null)
+                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User already exists!" });
+
+            Student user = new()
+            {
+                SecurityStamp = Guid.NewGuid().ToString(),
+                UserName = model.UserName
+            };
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (!result.Succeeded)
+                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User creation failed! Please check user details and try again." });
+
+            if (!await _roleManager.RoleExistsAsync(UserRoles.Admin))
+                await _roleManager.CreateAsync(new IdentityRole(UserRoles.Admin));
+            if (!await _roleManager.RoleExistsAsync(UserRoles.Student))
+                await _roleManager.CreateAsync(new IdentityRole(UserRoles.Student));
+
+            if (await _roleManager.RoleExistsAsync(UserRoles.Admin))
+            {
+                await _userManager.AddToRoleAsync(user, UserRoles.Admin);
+            }
+            if (await _roleManager.RoleExistsAsync(UserRoles.Admin))
+            {
+                await _userManager.AddToRoleAsync(user, UserRoles.Student);
+            }
+            return Ok(new Response { Status = "Success", Message = "User created successfully!" });
         }
 
         [HttpPost("/student/add-room/{id}")]
@@ -133,12 +176,72 @@ namespace HogwartsPotions.Controllers
             await _studentService.DeleteStudent(id);
         }
 
-        [HttpPost("/login")]
-        public async Task<IActionResult> LogIn([FromBody] Student student)
+        [HttpPost("/student/login")]
+        public async Task<IActionResult> LogIn([FromBody] LoginStudentDto model)
         {
-            //TODO implement login
-            await _signInManager.SignInAsync(student, isPersistent: true);
-            return Ok();
+            var user = await _userManager.FindByNameAsync(model.UserName);
+            if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+            {
+                var userRoles = await _userManager.GetRolesAsync(user);
+
+                var authClaims = new List<Claim>
+                {
+                    new(ClaimTypes.Name, user.UserName),
+                    new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                };
+
+                foreach (var userRole in userRoles)
+                {
+                    authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+                }
+
+                var token = GetToken(authClaims);
+
+                return Ok(new
+                {
+                    token = new JwtSecurityTokenHandler().WriteToken(token),
+                    expiration = token.ValidTo
+                });
+            }
+            return Unauthorized();
+        }
+
+        private JwtSecurityToken GetToken(IEnumerable<Claim> authClaims)
+        {
+            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"] ?? "JWTAuthenticationHIGHsecuredPasswordQSDaer163Etz"));
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["JWT:ValidIssuer"],
+                audience: _configuration["JWT:ValidAudience"],
+                expires: DateTime.Now.AddHours(3),
+                claims: authClaims,
+                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
+            );
+
+            return token;
         }
     }
 }
+
+//Create ValidRoom If it does not exists
+//var availableRooms = _roomService.GetAvailableRooms(roomlessStudent);
+//if (!availableRooms.Result.Any())
+//{
+//    var newRoomDto = new AddRoomDto()
+//    {
+//        Capacity = 10,
+//        RoomHouseType = roomlessStudent.HouseType
+//    };
+//    var newRoom = await _roomService.AddRoom(newRoomDto);
+//    availableRooms.Result.Add(newRoom);
+//}
+
+//var roomlessStudentView = new RoomlessStudentView()
+//{
+//    Id = roomlessStudent.Id,
+//    UserName = roomlessStudent.UserName,
+//    HouseType = roomlessStudent.HouseType,
+//    PetType = roomlessStudent.PetType,
+//    AvailableRooms = availableRooms.Result
+//};
+//return Ok(roomlessStudentView);
