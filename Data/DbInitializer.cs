@@ -12,7 +12,6 @@ namespace HogwartsPotions.Data
     {
         public static void Initialize(HogwartsContext context, UserManager<Student> userManager)
         {
-
             context.Database.EnsureCreated();
 
             // Look for any rooms.
@@ -22,25 +21,22 @@ namespace HogwartsPotions.Data
             }
 
             //Look for any students.
-            if (!context.Students.Any())
-            {
-                var _ = SeedStudents(context, userManager);
-            }
+            var studentsSeeded = !context.Students.Any() ? SeedStudents(context, userManager).Result : context.Students.Count();
 
             // Look for any ingredients.
-            if (!context.Ingredients.Any())
+            if (!context.Ingredients.Any() && studentsSeeded != 0)
             {
                 SeedIngredients(context);
             }
 
             // Look for any recipes.
-            if (!context.Recipes.Any())
+            if (!context.Recipes.Any() && studentsSeeded != 0)
             {
                 SeedRecipes(context);
             }
 
             // Look for any potions.
-            if (!context.Potions.Any())
+            if (!context.Potions.Any() && studentsSeeded != 0)
             {
                 SeedPotions(context);
             }
@@ -235,7 +231,9 @@ namespace HogwartsPotions.Data
                 await userManager.CreateAsync(student, "Abc123");
                 context.Rooms.First(room => room.Id == student.Room.Id).Residents.Add(student);
             }
-            return context.SaveChangesAsync().Result;
+
+            var result = await context.SaveChangesAsync();
+            return result + 3;
         }
     }
 }
