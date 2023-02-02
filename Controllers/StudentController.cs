@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using HogwartsPotions.Models.Entities;
 using HogwartsPotions.Models.Enums;
 using HogwartsPotions.Models.View_Models;
 using HogwartsPotions.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -44,6 +46,7 @@ namespace HogwartsPotions.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<List<Student>> GetAllStudents()
         {
             return await _studentService.GetAllStudents();
@@ -73,7 +76,11 @@ namespace HogwartsPotions.Controllers
                 if (!result.Succeeded)
                     return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User creation failed! Please check user details and try again." });
 
-                return Ok(new Response { Status = "Success", Message = "User created successfully!" });
+                return Ok(new Response
+                {
+                    Status = "Success", 
+                    Message = "User created successfully!"
+                });
             }
             catch (Exception e)
             {
@@ -107,7 +114,7 @@ namespace HogwartsPotions.Controllers
             {
                 await _userManager.AddToRoleAsync(user, UserRoles.Admin);
             }
-            if (await _roleManager.RoleExistsAsync(UserRoles.Admin))
+            if (await _roleManager.RoleExistsAsync(UserRoles.Student))
             {
                 await _userManager.AddToRoleAsync(user, UserRoles.Student);
             }
@@ -148,7 +155,18 @@ namespace HogwartsPotions.Controllers
         {
             var student = await _studentService.GetStudentById(id);
 
-            var studentView = new StudentView()
+            if (student.IsRoomless)
+            {
+                return new StudentView()
+                {
+                    Id = student.Id,
+                    UserName = student.UserName,
+                    HouseType = student.HouseType,
+                    PetType = student.PetType
+                };
+            }
+
+            return new StudentView()
             {
                 Id = student.Id,
                 UserName = student.UserName,
@@ -161,7 +179,6 @@ namespace HogwartsPotions.Controllers
                     Capacity = student.Room.Capacity
                 }
             };
-            return studentView;
         }
 
         [HttpPut("/student/{id}")]
@@ -176,10 +193,20 @@ namespace HogwartsPotions.Controllers
             await _studentService.DeleteStudent(id);
         }
 
-        [HttpPost("/student/login")]
+        [HttpGet("/student/select-room/{id}")]
+        public async Task<RoomlessStudentView> GetValidRoomsForStudent(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return null;
+            var availableRooms = GetValidRooms(user);
+            return new RoomlessStudentView(user, availableRooms);
+        }
+
+        [HttpPost("/login")]
         public async Task<IActionResult> LogIn([FromBody] LoginStudentDto model)
         {
-            var user = await _userManager.FindByNameAsync(model.UserName);
+            //var user = await _userManager.FindByNameAsync(model.UserName);
+            var user = await _studentService.GetStudentByName(model.UserName);
             if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
             {
                 var userRoles = await _userManager.GetRolesAsync(user);
@@ -196,11 +223,26 @@ namespace HogwartsPotions.Controllers
                 }
 
                 var token = GetToken(authClaims);
-
+                var stringToken = new JwtSecurityTokenHandler().WriteToken(token);
+                Response.Cookies.Append("JWT", stringToken, new CookieOptions(){HttpOnly = true, Secure = true, Expires = token.ValidTo});
+                if (user.IsRoomless)
+                {
+                    var validRooms = GetValidRooms(user);
+                    return Ok(new
+                    {
+                        student = new RoomlessStudentView
+                        {
+                            UserName = user.UserName,
+                            Id = user.Id,
+                            HouseType = user.HouseType,
+                            PetType = user.PetType,
+                            AvailableRooms = validRooms
+                        }
+                    });
+                }
                 return Ok(new
                 {
-                    token = new JwtSecurityTokenHandler().WriteToken(token),
-                    expiration = token.ValidTo
+                    student = new StudentView(user)
                 });
             }
             return Unauthorized();
@@ -208,7 +250,7 @@ namespace HogwartsPotions.Controllers
 
         private JwtSecurityToken GetToken(IEnumerable<Claim> authClaims)
         {
-            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"] ?? "JWTAuthenticationHIGHsecuredPasswordQSDaer163Etz"));
+            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]!));
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["JWT:ValidIssuer"],
@@ -220,28 +262,20 @@ namespace HogwartsPotions.Controllers
 
             return token;
         }
+
+        private List<Room> GetValidRooms(Student student)
+        {
+            var availableRooms = _roomService.GetAvailableRooms(student).Result;
+            if (availableRooms.Any()) return availableRooms;
+            var newRoomDto = new AddRoomDto
+            {
+                Capacity = 10,
+                RoomHouseType = student.HouseType
+            };
+            var newRoom = _roomService.AddRoom(newRoomDto).Result;
+            availableRooms.Add(newRoom);
+
+            return availableRooms;
+        }
     }
 }
-
-//Create ValidRoom If it does not exists
-//var availableRooms = _roomService.GetAvailableRooms(roomlessStudent);
-//if (!availableRooms.Result.Any())
-//{
-//    var newRoomDto = new AddRoomDto()
-//    {
-//        Capacity = 10,
-//        RoomHouseType = roomlessStudent.HouseType
-//    };
-//    var newRoom = await _roomService.AddRoom(newRoomDto);
-//    availableRooms.Result.Add(newRoom);
-//}
-
-//var roomlessStudentView = new RoomlessStudentView()
-//{
-//    Id = roomlessStudent.Id,
-//    UserName = roomlessStudent.UserName,
-//    HouseType = roomlessStudent.HouseType,
-//    PetType = roomlessStudent.PetType,
-//    AvailableRooms = availableRooms.Result
-//};
-//return Ok(roomlessStudentView);
