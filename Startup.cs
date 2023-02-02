@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading.Tasks;
 using HogwartsPotions.Models;
 using HogwartsPotions.Models.Entities;
 using HogwartsPotions.Services;
@@ -32,11 +33,13 @@ namespace HogwartsPotions
             services.AddIdentity<Student, IdentityRole>(options =>
                 {
                     options.SignIn.RequireConfirmedAccount = false;
-                    options.Password.RequireDigit = true;
+                    options.Password.RequireDigit = false;
                     options.Password.RequiredLength = 4;
                     options.Password.RequireNonAlphanumeric = false;
                     options.Password.RequireUppercase = true;
                     options.Password.RequireLowercase = false;
+                    options.User.AllowedUserNameCharacters =
+                        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ ";
                 })
                 .AddEntityFrameworkStores<HogwartsContext>();
 
@@ -62,7 +65,15 @@ namespace HogwartsPotions
                         ValidateAudience = true,
                         ValidAudience = Configuration["JWT:ValidAudience"],
                         ValidIssuer = Configuration["JWT:ValidIssuer"],
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JWT:Secret"]))
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JWT:Secret"]!))
+                    };
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            context.Token = context.Request.Cookies["JWT"];
+                            return Task.CompletedTask;
+                        }
                     };
                 });
 
@@ -86,6 +97,7 @@ namespace HogwartsPotions
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
             //app.UseHttpsRedirection();
             app.UseStaticFiles();
 
