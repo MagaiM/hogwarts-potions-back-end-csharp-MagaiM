@@ -11,5 +11,18 @@ namespace HogwartsPotions.Models.View_Models
         public HouseType HouseType { get; set; }
         public PetType PetType { get; set; }
         public List<Room> AvailableRooms { get; set; }
+
+        public RoomlessStudentView()
+        {
+        }
+
+        public RoomlessStudentView(Student student, List<Room> availableRooms)
+        {
+            Id = student.Id;
+            UserName = student.UserName;
+            HouseType = student.HouseType;
+            PetType = student.PetType;
+            AvailableRooms = availableRooms;
+        }
     }
 }
