@@ -248,6 +248,13 @@ namespace HogwartsPotions.Controllers
             return Unauthorized();
         }
 
+        [HttpDelete("/logout")]
+        public Task<IActionResult> LogOut()
+        {
+            Response.Cookies.Append("JWT", "", new CookieOptions(){ HttpOnly = true, Secure = true, Expires = DateTimeOffset.Now});
+            return Task.FromResult<IActionResult>(Ok(new Response { Status = "Success", Message = "User logged out successfully!" }));
+        }
+
         private JwtSecurityToken GetToken(IEnumerable<Claim> authClaims)
         {
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]!));
