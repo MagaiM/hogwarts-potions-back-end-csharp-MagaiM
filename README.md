@@ -1,4 +1,4 @@
-# Project Name
+# hogwarts-potions-back-end-csharp-MagaiM
 
 We are helping the wizards at Hogwarts with administrative tasks.
 
@@ -48,22 +48,7 @@ You can:
 
 ## Installation
 
-To run this project, make sure you have the following prerequisites installed:
-
-- [.NET Core 6.0.16](https://dotnet.microsoft.com/download/dotnet/6.0)
-- [ASP.NET Core 6.0.16](https://dotnet.microsoft.com/download/dotnet/6.0)
-- [Microsoft.AspNetCore.Authentication.JwtBearer 6.0.11](https://www.nuget.org/packages/Microsoft.AspNetCore.Authentication.JwtBearer)
-- [Microsoft.AspNetCore.Identity.EntityFrameworkCore 6.0.11](https://www.nuget.org/packages/Microsoft.AspNetCore.Identity.EntityFrameworkCore)
-- [Microsoft.AspNetCore.Mvc.NewtonsoftJson 6.0.6](https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.NewtonsoftJson)
-- [Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation 6.0.6](https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation)
-- [Microsoft.EntityFrameworkCore 7.0.0](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore)
-- [Microsoft.EntityFrameworkCore.Relational 7.0.0](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.Relational)
-- [Microsoft.EntityFrameworkCore.SqlServer 7.0.0](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.SqlServer)
-- [Microsoft.EntityFrameworkCore.Tools 7.0.0](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.Tools)
-- [Microsoft.Extensions.Identity.Core 6.0.11](https://www.nuget.org/packages/Microsoft.Extensions.Identity.Core)
-- [Microsoft.Extensions.Identity.Stores 6.0.11](https://www.nuget.org/packages/Microsoft.Extensions.Identity.Stores)
-- [Microsoft.Net.Compilers.Toolset 4.4.0](https://www.nuget.org/packages/Microsoft.Net.Compilers.Toolset)
-- [Newtonsoft.Json 13.0.1](https://www.nuget.org/packages/Newtonsoft.Json)
+To run this project, make sure you have the [Prerequisites](#prerequisites) installed!
 
 Follow these steps to set up the project:
 
