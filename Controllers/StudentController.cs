@@ -151,34 +151,43 @@ namespace HogwartsPotions.Controllers
         }
 
         [HttpGet("/student/{id}")]
-        public async Task<StudentView> GetStudentById(string id)
+        public async Task<IActionResult> GetStudentById(string id)
         {
             var student = await _studentService.GetStudentById(id);
+            if (student == null) return BadRequest("Invalid Student ID");
 
-            if (student.IsRoomless)
+            try
             {
-                return new StudentView()
+
+                if (student.IsRoomless)
+                {
+                    return Ok(new StudentView()
+                    {
+                        Id = student.Id,
+                        UserName = student.UserName,
+                        HouseType = student.HouseType,
+                        PetType = student.PetType
+                    });
+                }
+
+                return Ok(new StudentView()
                 {
                     Id = student.Id,
                     UserName = student.UserName,
                     HouseType = student.HouseType,
-                    PetType = student.PetType
-                };
+                    PetType = student.PetType,
+                    Room = new Room()
+                    {
+                        Id = student.Room.Id,
+                        RoomHouseType = student.Room.RoomHouseType,
+                        Capacity = student.Room.Capacity
+                    }
+                });
             }
-
-            return new StudentView()
+            catch (Exception e)
             {
-                Id = student.Id,
-                UserName = student.UserName,
-                HouseType = student.HouseType,
-                PetType = student.PetType,
-                Room = new Room()
-                {
-                    Id = student.Room.Id,
-                    RoomHouseType = student.Room.RoomHouseType,
-                    Capacity = student.Room.Capacity
-                }
-            };
+                return BadRequest("Something went wrong!");
+            }
         }
 
         [HttpPut("/student/{id}")]
