@@ -48,7 +48,8 @@ You can:
 
 ## Installation
 
-To run this project, make sure you have the [Prerequisites](#prerequisites) installed!
+To run this project, make sure you have the [.NET Core 6.0.16](https://dotnet.microsoft.com/download/dotnet/6.0)
+- [ASP.NET Core 6.0.16](https://dotnet.microsoft.com/download/dotnet/6.0) installed!
 
 Follow these steps to set up the project:
 
@@ -85,7 +86,7 @@ Follow these steps to set up the project:
 
 ## Usage
 
-For an example of a frontend application useing this API: https://github.com/MagaiM/hogwarts-potions-frontend-angular-MagaiM
+For an example frontend application using this API, check out this project: https://github.com/MagaiM/hogwarts-potions-frontend-angular-MagaiM
 
 Once you downloaded installed and run the api as seen in the [Installation](#installation) you can send requests to end points.
 
