@@ -48,7 +48,7 @@ You can:
 
 ## Installation
 
-To run this project, make sure you have the [.NET Core 6.0.16](https://dotnet.microsoft.com/download/dotnet/6.0) [ASP.NET Core 6.0.16](https://dotnet.microsoft.com/download/dotnet/6.0) installed!
+To run this project, make sure you have the [.NET Core 6.0.16](https://dotnet.microsoft.com/download/dotnet/6.0) and [ASP.NET Core 6.0.16](https://dotnet.microsoft.com/download/dotnet/6.0) installed!
 
 Follow these steps to set up the project:
 
